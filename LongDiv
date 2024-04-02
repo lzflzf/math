@@ -1,0 +1,188 @@
+import java.math.BigInteger;
+
+public class LongDiv {
+
+    public static void main(String[] args) {
+
+
+        //System.out.println(sub("0", "1"));
+
+        String a = "";
+        String b = "";
+
+        // 生成 字符串 a 和 b 指包含 0-9 的随机数
+        // a的长度为 5000
+        // b的长度为 100
+
+        for (int i = 0; i < 20098; i++) {
+            a += (int) (Math.random() * 10);
+        }
+
+        for (int i = 0; i < 345; i++) {
+            b += (int) (Math.random() * 10);
+        }
+
+        //System.out.println(a);
+        //System.out.println(b);
+
+        a = a.replaceFirst("^0*", "");
+        // 去掉b的前导0
+        b = b.replaceFirst("^0*", "");
+
+
+        String[] res = longDiv(a, b);
+
+        System.out.println(res[0]);
+        //System.out.println(res[1]);
+
+        BigInteger bigInteger = new BigInteger(a);
+        BigInteger bigInteger1 = new BigInteger(b);
+
+        BigInteger[] res1 = bigInteger.divideAndRemainder(bigInteger1);
+
+        System.out.println(res1[0].equals(new BigInteger(res[0])));
+
+        System.out.println(res1[0].toString());
+
+        System.out.println(res1[1].equals(new BigInteger(res[1])));
+    }
+
+
+    private static String[] longDiv(String a, String b) {
+        StringBuilder tmp = new StringBuilder();
+        StringBuilder result = new StringBuilder();
+
+        for (int i = 0; i < a.length(); i++) {
+
+            if(tmp.length() == 0 && a.charAt(i) == '0') {
+                result.append("0");
+                continue;
+            }
+            tmp.append(a.charAt(i));
+
+            if (tmp.length() < b.length()) {
+                result.append("0");
+                continue;
+            }
+            if(tmp.length() == b.length() && tmp.toString().compareTo(b) < 0) {
+                result.append("0");
+                continue;
+            }
+
+            String[] div = div(tmp.toString(), b);
+            result.append(div[0]);
+            tmp = new StringBuilder(div[1]);
+
+        }
+
+        // 去掉 result 前面的0
+        result = new StringBuilder(result.toString().replaceFirst("^0*", ""));
+
+        if (result.length() == 0) {
+            result.append("0");
+        }
+
+        if (tmp.length() == 0) {
+            tmp.append("0");
+        }
+
+        return new String[]{result.toString(), tmp.toString()};
+    }
+
+
+    /**
+     * 计算a/b 要求 a > b
+     * a和b位数相同 或者a和b的位数多1
+     *
+     * @param a
+     * @param b
+     * @return
+     */
+    private static String[] div(String a, String b) {
+
+        // 估商 误差不会超过1
+        int q = 0;
+        if (b.length() == 1) {
+            q = Integer.parseInt(a) / Integer.parseInt(b);
+        } else {
+            if (a.length() == b.length()) {
+                q = Integer.parseInt(a.substring(0, 2)) / Integer.parseInt(b.substring(0, 2));
+            } else {
+                q = Integer.parseInt(a.substring(0, 3)) / Integer.parseInt(b.substring(0, 2));
+            }
+        }
+
+        String p = mul(b, q);
+
+        // case p > a
+        if ((p.length() == a.length() && p.compareTo(a) > 0) || p.length() > a.length()) {
+            q = q - 1;
+            p = mul(b, q);
+        }
+
+        String r = sub(a, p);
+        return new String[]{String.valueOf(q), r};
+    }
+
+
+    /**
+     * @param a
+     * @param q 1 < q < 10
+     * @return
+     */
+    private static String mul(String a, int q) {
+
+        StringBuilder result = new StringBuilder();
+        int carry = 0;
+        for (int i = a.length() - 1; i >= 0; i--) {
+            int tmp = (a.charAt(i) - '0') * q + carry;
+            result.append(tmp % 10);
+            carry = tmp / 10;
+        }
+
+        if (carry != 0) {
+            result.append(carry);
+        }
+
+        return result.reverse().toString();
+    }
+
+
+    /**
+     * a > b a比b位数多1
+     *
+     * @param a
+     * @param b
+     * @return
+     */
+    private static String sub(String a, String b) {
+
+
+        // 计算字符串a -b  a>b
+        StringBuilder result = new StringBuilder();
+        int carry = 0;
+        for (int i = a.length() - 1, j = b.length() - 1; i >= 0; i--, j--) {
+            int x = a.charAt(i) - '0';
+            int y = j >= 0 ? b.charAt(j) - '0' : 0;
+            int tmp = x - y - carry;
+            if (tmp < 0) {
+                tmp += 10;
+                carry = 1;
+            } else {
+                carry = 0;
+            }
+            result.append(tmp);
+        }
+        while (result.length() > 0 && result.charAt(result.length() - 1) == '0') {
+            result.deleteCharAt(result.length() - 1);
+        }
+
+        String res = result.reverse().toString();
+
+        System.out.print("sub===>" + a + " - " + b);
+        System.out.println("=" + res);
+
+        return res;
+
+    }
+}
